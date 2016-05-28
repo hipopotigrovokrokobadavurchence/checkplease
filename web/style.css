@@ -31,16 +31,16 @@
   color: #666;
 }
 .controls {
-  padding-left: 5px;
-}
-.controls a {
-  display: block;
+  margin-left: 5px;
 }
 
+.glyphicon.big {
+  font-size: 50px;
+  display: block;
+}
 
 .request .button {
   display: block;
-  margin: 0px 3px 5px 0;
   padding: 3px 7px;
   border-radius: 2px;
   border-bottom: 1px solid;
@@ -75,18 +75,22 @@
   border-bottom-color: #798d8f !important;
 }
 
-.request .timer {
+.request .caption {
   background-color: #000;
   opacity: 0.3;
   font-size: 14px;
+  padding: 5px;
 }
 .request .icon {
-  padding: 5px 0 0 0;
-  min-width: 70px;
   text-align: center;
   font-size: 32px;
   color: #ecf0f1;
   border-bottom: 3px solid;
+  /*border-right: 2px solid;*/
+}
+.request .icon .icon-body{
+  display:inline-block;
+  vertical-align:middle;
 }
 .request .icon {
   background: #7f8c8d;
