@@ -30,8 +30,6 @@
     </div>
   </nav>
 
-  <br/><br/><br/>
-
   <div id="errContainer"></div>
   <div class="requests row" id="request_container"></div>
 
@@ -40,7 +38,7 @@
   settings = {url: "", apiMethod:"POST"}
 
   function GetPendingRequests(){
-    $.ajax({    url: "http://192.168.1.5:9933/api/",
+    $.ajax({    url: "http://192.168.1.8:9933/api/",
        type: "POST",
        data: '{"method":"GetPendingRequests", "params":{"placeID":"1"}}',
        success: RenderPendingRequests,
@@ -65,7 +63,7 @@
 
       $("#request_container").html(
         $("#request_container").html()
-        + '<div class="request col-sm-7" id="'+obj[i].ID+'">'
+        + '<div class="request col-sm-4" id="'+obj[i].ID+'">'
 
         + '<div class="icon" style="'+style+'">'
         + '<div class="caption"><i class="glyphicon glyphicon-cutlery"></i> '
@@ -96,7 +94,7 @@
   function AckRequest(caller){
     console.log("Caller: ", caller.id);
 
-    $.ajax({    url: "http://192.168.1.5:9933/api/",
+    $.ajax({    url: "http://192.168.1.8:9933/api/",
        type: "POST",
        data: '{"method":"AckRequest", "params":{"requestID":"' + caller.id + '"}}',
        success: function(result){ $("#" +caller.id).remove()},
