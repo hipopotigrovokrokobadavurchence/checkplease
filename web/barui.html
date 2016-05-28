@@ -20,7 +20,7 @@
           <span class="icon-bar"></span>
           <span class="icon-bar"></span>
         </button>
-        <a class="navbar-brand" href="#">Project name</a>
+        <a class="navbar-brand" href="#">CheckPlease - Front office</a>
       </div>
       <div id="navbar" class="collapse navbar-collapse">
         <ul class="nav navbar-nav">
@@ -78,9 +78,9 @@
         + '</div>'
 
         + '<div class="icon" style="'+style+'">'
-        + '<div class="caption"><i class="glyphicon glyphicon-time"></i> minutes'
+        + '<div class="caption"><i class="glyphicon glyphicon-time"></i> ordered at:'
         + '</div>'
-        + '<span data-inserted-at="'+obj[i].InsertedAt+'" class="icon-body">0:01</span>'
+        + '<span data-inserted-at="'+obj[i].InsertedAt+'" class="icon-body">' + obj[i].InsertedAt  + '</span>'
         + '</div>'
 
         + '<a href="#" class="controls button green" onclick="AckRequest(this.parentNode)"> <i class="glyphicon glyphicon-ok big"></i> complete</a>'

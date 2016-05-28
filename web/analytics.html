@@ -4,6 +4,7 @@
   <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
   <link rel="stylesheet" type="text/css" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.0/css/bootstrap.min.css" media="screen" />
   <script type="text/javascript" src="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.0/js/bootstrap.min.js"></script>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
   <nav class="navbar navbar-inverse navbar-fixed-top">
@@ -15,7 +16,7 @@
               <span class="icon-bar"></span>
               <span class="icon-bar"></span>
             </button>
-            <a class="navbar-brand" href="#">Analytics UI</a>
+            <a class="navbar-brand" href="#">CheckPlease -  Analytics</a>
           </div>
           <div id="navbar" class="collapse navbar-collapse">
             <ul class="nav navbar-nav">
@@ -28,12 +29,12 @@
       <div id="errContainer"></div>
       <div class="row">
         <div class="col-xs-6 col-md-6" >
-          <a href="#" class="thumbnail" id="requests">
-          </a>
+          <p href="#" class="1thumbnail" id="requests">
+          </p>
         </div>
         <div class="col-xs-6 col-md-6" >
-          <a href="#" class="thumbnail" id="items">
-          </a>
+          <p href="#" class="1thumbnail" id="items">
+          </p>
         </div>
       </div>
 
@@ -41,20 +42,28 @@
   <script>
 
   function RefreshStatistics(){
-    $.ajax({    url: "http://192.168.1.5:9933/statistics/",
+    $.ajax({    url: "http://192.168.1.8:9933/statistics/",
        type: "GET",
        success: function(result){
          console.log(result);
-         var a = '';
+         var a = '<h2 style="color:white;">User request counters:</h2>';
          if(result.hasOwnProperty('counters')) {
             for (var counter in result.counters) {
-              a += counter +": " + result.counters[counter] + "<br/>";
+            a += '<div class="request col-sm-4" id="113"><div class="icon" style=";background:#CE93D8; border-bottom-color:#9e63a8;"><div class="caption"><i class="glyphicon glyphicon-glass"></i> <span>Order</span></div> <span class="icon-body" style="font-size:16px">'+ counter + '</span></div><div class="icon" style=";background:#CE93D8; border-bottom-color:#9e63a8;"><div class="caption"><i class="glyphicon glyphicon-signal"></i> count</div><span data-inserted-at="06:43" class="icon-body">' + result.counters[counter] + '</span></div>';
             }
             $("#requests").html(a);
        }
+
+        var a = '<h2 style="color:white;">Ordered products/promotions:</h2>';
        if(result.hasOwnProperty('statItems')) {
-          for (var counter in result.counters) {
-            a += "Item id: " + counter +": Times requested:" + result.counters[counter] + "<br/>";
+          for (var counter1 in result.statItems) {
+            a += '<div class="request col-sm-4" id="113"><div class="icon" style=";background:#CE93D8; border-bottom-color:#9e63a8;"><div class="caption"><i class="glyphicon glyphicon-glass"></i> <span>Order</span></div> <span class="icon-body" style="font-size:16px">'+ counter1 + '</span></div><div class="icon" style=";background:#CE93D8; border-bottom-color:#9e63a8;"><div class="caption"><i class="glyphicon glyphicon-signal"></i> count</div><span data-inserted-at="06:43" class="icon-body">' + result.statItems[counter1] + '</span></div>';
+            
+
+/*
+<div class="request col-sm-4"><a href="#" class="controls button green"> <i class="glyphicon glyphicon-ok big"></i> complete</a><div class="info"><h1>Call for waiter</h1></div></div>
+
+*/
           }
           $("#items").html(a);
      }},
