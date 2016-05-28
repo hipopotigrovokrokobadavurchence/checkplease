@@ -1,8 +1,14 @@
+.requests {
+display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+}
 .request {
   -webkit-display: flex;
   display: flex;
-  margin: 0 auto 10px auto;
-  width: 350px;
+  margin-bottom: 10px;
   min-height: 70px;
 }
 .request .info {
@@ -91,6 +97,10 @@
 .request .icon .icon-body{
   display:inline-block;
   vertical-align:middle;
+}
+
+.request .button-caption{
+
 }
 .request .icon {
   background: #7f8c8d;
