@@ -62,22 +62,26 @@
       $("#request_container").html(
         $("#request_container").html()
         + '<div class="request green" id="'+obj[i].ID+'">'
+
         + '<div class="icon">'
+        + '<div class="caption"><i class="glyphicon glyphicon-time"></i> minutes'
+        + '</div>'
+        + '<span data-inserted-at="'+obj[i].InsertedAt+'" class="icon-body">0:01</span>'
+        + '</div>'
+
+        + '<div class="icon">'
+        + '<div class="caption"><i class="glyphicon glyphicon-cutlery"></i> '
+        + '<span>table</span>'
+        + '</div> <span class="icon-body">'
         + obj[i].TableNumber
-        + '<div class="timer"><i class="glyphicon glyphicon-time"></i> '
-        + '<span data-inserted-at="'+obj[i].InsertedAt+'">1m</span>'
-        + '</div>'
-        + '</div>'
+        + '</span></div>'
 
         + '<div class="info">'
         + '<h1>This is a ' + obj[i].MenuItemName
         + '<p>You have been notified</p>'
         + '</div>'
 
-        + '<span class="controls">'
-        + '<a href="#" class="button green" onclick="AckRequest(this.parentNode.parentNode)"> <i class="glyphicon glyphicon-ok"></i> complete</a>'
-        + '<a href="#" class="button red" onclick="delRequest(this.parentNode.parentNode)"> <i class="glyphicon glyphicon-trash"></i> delete</a>'
-        + '</span>'
+        + '<a href="#" class="controls button green" onclick="AckRequest(this.parentNode)"> <i class="glyphicon glyphicon-ok big"></i> complete</a>'
         + '</div>'
       )
     }
@@ -109,7 +113,7 @@
 
     for (var i = 0, j = timers.length; i < j; i++) {
       var timer = $(timers[i]);
-      var request = timer.closest('.request');
+      var button = timer.closest('.request').find('.button');
       var insertedAt = new Date(timer.data('inserted-at'));
       var orderDay = insertedAt.getUTCDay();
       var orderHour = insertedAt.getUTCHours();
@@ -122,24 +126,24 @@
       var minuteDifferencePretty;
 
       if (minuteDifference < 0) {
-        minuteDifferencePretty = '1m'
-      } else if (minuteDifference > 1440) {
-        minuteDifferencePretty = '> 1day'
+        minuteDifferencePretty = '0:01'
+      } else if (minuteDifference > 360) {
+        minuteDifferencePretty = '> 6h'
       } else {
         minuteDifferencePretty = Math.floor(minuteDifference / 60) + ':'
           + ((minuteDifference % 60) < 10
             ? '0' + (minuteDifference % 60)
-            : (minuteDifference % 60)  + 'm');
+            : (minuteDifference % 60));
       }
 
       timer.html(minuteDifferencePretty);
 
       if (minuteDifference > 10 && minuteDifference < 20) {
-        request.removeClass('green').addClass('orange');
+        button.removeClass('green').addClass('orange');
       } else if (minuteDifference >= 20 && minuteDifference < 30) {
-        request.removeClass('green orange').addClass('red');
+        button.removeClass('green orange').addClass('red');
       } else if (minuteDifference >= 30) {
-        request.removeClass('green orange red').addClass('grey');
+        button.removeClass('green orange red').addClass('grey');
       }
     }
   }
@@ -151,6 +155,8 @@
 
   window.onload = timeoutFunctions;
   window.setInterval(timeoutFunctions, 5000);
+
+  RenderPendingRequests('[{"ID":51,"TableID":1,"TableNumber":"1","MenuItemID":1,"MenuItemName":"Call for waiter","PlaceID":1,"InsertedAt":"2016-05-28T12:54:23.20947Z","InsertedBy":0,"UpdatedAt":"","UpdatedBy":0,"StateID":0},  {"ID":87,"TableID":2,"TableNumber":"2","MenuItemID":10,"MenuItemName":"Pizza","PlaceID":1,"InsertedAt":"2016-05-28T06:14:45.781865Z","InsertedBy":0,"UpdatedAt":"","UpdatedBy":0,"StateID":0},  {"ID":88,"TableID":2,"TableNumber":"2","MenuItemID":1,"MenuItemName":"Call for waiter","PlaceID":1,"InsertedAt":"2016-05-28T06:24:51.939957Z","InsertedBy":0,"UpdatedAt":"","UpdatedBy":0,"StateID":0}]');
   </script>
 </html>
 
