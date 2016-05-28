@@ -1,0 +1,72 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+  <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+  <link rel="stylesheet" type="text/css" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.0/css/bootstrap.min.css" media="screen" />
+  <script type="text/javascript" src="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.0/js/bootstrap.min.js"></script>
+</head>
+<body>
+  <nav class="navbar navbar-inverse navbar-fixed-top">
+        <div class="container">
+          <div class="navbar-header">
+            <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+              <span class="sr-only">Toggle navigation</span>
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="#">Analytics UI</a>
+          </div>
+          <div id="navbar" class="collapse navbar-collapse">
+            <ul class="nav navbar-nav">
+              <!-- <li><a href="#about">About</a></li> -->
+            </ul>
+          </div><!--/.nav-collapse -->
+        </div>
+      </nav>
+      <br/><br/><br/>
+      <div id="errContainer"></div>
+      <div class="row">
+        <div class="col-xs-6 col-md-6" >
+          <a href="#" class="thumbnail" id="requests">
+          </a>
+        </div>
+        <div class="col-xs-6 col-md-6" >
+          <a href="#" class="thumbnail" id="items">
+          </a>
+        </div>
+      </div>
+
+</body>
+  <script>
+
+  function RefreshStatistics(){
+    $.ajax({    url: "http://192.168.1.5:9933/statistics/",
+       type: "GET",
+       success: function(result){
+         console.log(result);
+         var a = '';
+         if(result.hasOwnProperty('counters')) {
+            for (var counter in result.counters) {
+              a += counter +": " + result.counters[counter] + "<br/>";
+            }
+            $("#requests").html(a);
+       }
+       if(result.hasOwnProperty('statItems')) {
+          for (var counter in result.counters) {
+            a += "Item id: " + counter +": Times requested:" + result.counters[counter] + "<br/>";
+          }
+          $("#items").html(a);
+     }},
+       error: handleErr
+   });
+  }
+
+  window.setInterval(RefreshStatistics, 2000);
+
+  function handleErr(xhr, reqStatus, reqError){
+      console.log(xhr);
+      $("#errContainer").html('<div class="alert alert-danger"><a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a><strong>Application Error! Please try again later!  </strong></div>');
+  }
+  </script>
+</html>
