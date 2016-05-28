@@ -1,0 +1,73 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+  <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+  <link rel="stylesheet" type="text/css" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.0/css/bootstrap.min.css" media="screen" />
+  <script type="text/javascript" src="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.0/js/bootstrap.min.js"></script>
+</head>
+<body>
+  <nav class="navbar navbar-inverse navbar-fixed-top">
+        <div class="container">
+          <div class="navbar-header">
+            <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+              <span class="sr-only">Toggle navigation</span>
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="#">Project name</a>
+          </div>
+          <div id="navbar" class="collapse navbar-collapse">
+            <ul class="nav navbar-nav">
+              <!-- <li><a href="#about">About</a></li> -->
+            </ul>
+          </div><!--/.nav-collapse -->
+        </div>
+      </nav>
+      <br/><br/><br/>
+       <div id="errContainer"></div>
+      <div class="list-group" id="request_container">
+      </div>
+
+</body>
+  <script>
+  settings = {url: "", apiMethod:"POST"}
+  function GetPendingRequests(){
+              $.ajax({    url: "http://192.168.1.5:9933/api/",
+                 type: "POST",
+                 data: '{"method":"GetPendingRequests", "params":{"placeID":"1"}}',
+                 success: RenderPendingRequests,
+                 error: handleErr
+             });
+  }
+
+  function handleErr(xhr, reqStatus, reqError){
+      console.log(xhr);
+      $("#errContainer").html('<div class="alert alert-danger"><a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a><strong>Application Error! Please try again later!  </strong></div>');
+  }
+
+  function RenderPendingRequests(result){
+      obj = JSON.parse(result);
+      $("#request_container").html('');
+      for(var i = 0; i < obj.length; i++){
+          $("#request_container").html($("#request_container").html() +
+          '<a href="#" id="'+obj[i].ID+'" class="list-group-item" onclick="AckRequest(this)">Table #:<b>'+ obj[i].TableNumber + '</b> Service: <b>' + obj[i].MenuItemName +'</b>  <span style="float:right;"> Inserted at:' + obj[i].InsertedAt +'</span></a>')
+      }
+  }
+
+  function AckRequest(caller){
+    console.log("Caller: ", caller.id);
+    $.ajax({    url: "http://192.168.1.5:9933/api/",
+       type: "POST",
+       data: '{"method":"AckRequest", "params":{"requestID":"' + caller.id + '"}}',
+       success: function(result){ $("#" +caller.id).remove()},
+       error: handleErr
+   });
+  }
+
+  window.onload = GetPendingRequests;
+
+  window.setInterval(GetPendingRequests, 5000);
+  </script>
+</html>
+
