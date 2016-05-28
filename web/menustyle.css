@@ -1,0 +1,11 @@
+.request .menu-item-img > img {
+	max-height: 125px;
+}
+
+.request .menu-item-price {
+}
+
+.confirm-menu-item > i,
+.edit-menu-item > i {
+	padding: 10px;
+}
