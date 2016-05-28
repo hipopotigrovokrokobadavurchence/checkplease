@@ -33,7 +33,7 @@
   <br/><br/><br/>
 
   <div id="errContainer"></div>
-  <div class="list-group" id="request_container"></div>
+  <div class="requests row" id="request_container"></div>
 
 </body>
   <script>
@@ -59,17 +59,15 @@
     $("#request_container").html('');
 
     for(var i = 0; i < obj.length; i++) {
+      var backgroundHex = obj[i].SectionColor || '95a5a6';
+      var bottomBorder = (parseInt(backgroundHex, 16) - parseInt('303030', 16)).toString(16);
+      var style = ';background:#'+backgroundHex+'; border-bottom-color:#' + bottomBorder+';';
+
       $("#request_container").html(
         $("#request_container").html()
-        + '<div class="request green" id="'+obj[i].ID+'">'
+        + '<div class="request col-sm-7" id="'+obj[i].ID+'">'
 
-        + '<div class="icon">'
-        + '<div class="caption"><i class="glyphicon glyphicon-time"></i> minutes'
-        + '</div>'
-        + '<span data-inserted-at="'+obj[i].InsertedAt+'" class="icon-body">0:01</span>'
-        + '</div>'
-
-        + '<div class="icon">'
+        + '<div class="icon" style="'+style+'">'
         + '<div class="caption"><i class="glyphicon glyphicon-cutlery"></i> '
         + '<span>table</span>'
         + '</div> <span class="icon-body">'
@@ -77,8 +75,14 @@
         + '</span></div>'
 
         + '<div class="info">'
-        + '<h1>This is a ' + obj[i].MenuItemName
-        + '<p>You have been notified</p>'
+        + '<h1>' + obj[i].MenuItemName + '</h1>'
+        // + '<p>You have been notified</p>'
+        + '</div>'
+
+        + '<div class="icon" style="'+style+'">'
+        + '<div class="caption"><i class="glyphicon glyphicon-time"></i> minutes'
+        + '</div>'
+        + '<span data-inserted-at="'+obj[i].InsertedAt+'" class="icon-body">0:01</span>'
         + '</div>'
 
         + '<a href="#" class="controls button green" onclick="AckRequest(this.parentNode)"> <i class="glyphicon glyphicon-ok big"></i> complete</a>'
@@ -100,10 +104,6 @@
    });
   }
 
-  function delRequest(caller) {
-    console.log('Консумирай екскременти!')
-  }
-
   function updateTimers() {
     var timers = $('[data-inserted-at]');
     var now = new Date();
@@ -113,7 +113,6 @@
 
     for (var i = 0, j = timers.length; i < j; i++) {
       var timer = $(timers[i]);
-      var button = timer.closest('.request').find('.button');
       var insertedAt = new Date(timer.data('inserted-at'));
       var orderDay = insertedAt.getUTCDay();
       var orderHour = insertedAt.getUTCHours();
@@ -137,14 +136,6 @@
       }
 
       timer.html(minuteDifferencePretty);
-
-      if (minuteDifference > 10 && minuteDifference < 20) {
-        button.removeClass('green').addClass('orange');
-      } else if (minuteDifference >= 20 && minuteDifference < 30) {
-        button.removeClass('green orange').addClass('red');
-      } else if (minuteDifference >= 30) {
-        button.removeClass('green orange red').addClass('grey');
-      }
     }
   }
 
@@ -155,6 +146,7 @@
 
   window.onload = timeoutFunctions;
   window.setInterval(timeoutFunctions, 5000);
+
   </script>
 </html>
 
