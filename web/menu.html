@@ -5,6 +5,7 @@
 
   <link rel="stylesheet" type="text/css" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.0/css/bootstrap.min.css" media="screen" />
   <link rel="stylesheet" type="text/css" href="./style.css">
+  <link rel="stylesheet" type="text/css" href="./menustyle.css">
 
   <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
   <script type="text/javascript" src="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.0/js/bootstrap.min.js"></script>
@@ -33,7 +34,7 @@
   <br/><br/><br/>
 
   <div id="errContainer"></div>
-  <div class="menu-items row" id="menu_items"></div>
+  <div class="menu-items row" id="menu-items"></div>
 
 </body>
   <script>
@@ -41,57 +42,149 @@
 
   function getMenuItems(){
     $.ajax({
-      url: "http://10.21.2.218:7777/appa/app.pl",
+       url: "http://192.168.1.2:7777/appa/app.pl",
        type: "GET",
-       data: '{"method":"get_menu_items", "params":{"placeID":"1"}}',
+       data: 'payload_jsonrpc={"method":"get_menu_items","params":{"place_id":"1"}}',
+       // data: {
+       //  'method': 'get_menu_items',
+       //  'params': {
+       //    'place_id': '1'
+       //  }
+       // }, 
+       // dataType: 'json',headers: { 'Access-Control-Allow-Origin': '*' },
+       // headers: { 'Access-Control-Allow-Origin': '*' },
        success: renderMenuItems,
        error: handleErr
    });
   }
 
   function handleErr(xhr, reqStatus, reqError){
-      console.log(xhr);
+      console.log(xhr, reqStatus, reqError);
       $("#errContainer").html('<div class="alert alert-danger"><a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a><strong>Application Error! Please try again later!  </strong></div>');
   }
 
-  function renderMenuItems(result){
-    console.log(result)
-    obj = JSON.parse(result);
+  function renderMenuItems(data){
+    var obj = JSON.parse(data);
+    var result = obj.result; 
+    console.log(result);
 
-    $("#request_container").html('');
+    $("#menu-items").html('');
 
-    for(var i = 0; i < obj.length; i++) {
-      var backgroundHex = obj[i].SectionColor || '95a5a6';
-      var bottomBorder = (parseInt(backgroundHex, 16) - parseInt('303030', 16)).toString(16);
-      var style = ';background:#'+backgroundHex+'; border-bottom-color:#' + bottomBorder+';';
+    for(var i = 0; i < result.length; i++) {
+      var imgSrc = result[i].image_url || 'http://i.imgur.com/yatmQvR.png';
 
-      $("#menu_items").html(
-        $("#menu_items").html()
-        + '<div class="request blue col-sm-7" id="'+obj[i].ID+'">'
+      $("#menu-items").html(
+        $("#menu-items").html()
+        + '<div class="request blue col-sm-6" id="'+ result[i].id_hash +'" data-item="'+ result[i].id_hash +'">'
+
+        + '<div class="menu-item-img icon">'
+        + ' <img src="' + imgSrc + '" alt=""><img>'
+        + '</div>'
+
+        + '<div class="info menu-item-body">'
+        + '<div class="menu-item-title">'+ result[i].name +'</div>'
+        + '<div class="menu-item-description">'+ result[i].descr +'</div>'
+        + '<div class="menu-item-price"> price: '+ result[i].price +'</div>'
+        + '</div>'
+
+        + '<a href="#" class="controls button green text-center edit-menu-item" onclick="modifyMenuItem(this)"> <i class="glyphicon glyphicon-cog mid"></i> edit</a>'
+        + '<a href="#" class="controls button green text-center confirm-menu-item" onclick="confirmMenuItemChange(this)"> <i class="glyphicon glyphicon-ok mid"></i> edit</a>'
 
         + '</div>'
       )
     }
   }
 
+  function modifyMenuItem(caller) {
+    var menuItem = $(caller).parent();
 
+    var editButton = menuItem.find('.edit-menu-item');
+    var confirmButton = menuItem.find('.confirm-menu-item');
+    var title = menuItem.find('.menu-item-title');
+    var description = menuItem.find('.menu-item-description');
+    var price = menuItem.find('.menu-item-price');
+    var img = menuItem.find('.menu-item-img');
 
-  function applyChanges(caller){
-    console.log("Caller: ", caller.id);
+    title.html(
+      '<input value="'+title.text()+'"></input>'
+    )
+
+    description.html(
+      '<textarea value="">'+description.text()+'</textarea>'
+    )
+
+    price.html(
+      '<input  value="'+price.text().slice(8)+'"/></input>'
+    )
+
+    // var imgUploader = $('<div class="menu-image-upload">')
+      // .
+    console.log(editButton);
+    console.log(confirmButton);
+  }
+
+  function confirmMenuItemChange(caller) {
+    var menuItem = $(caller).parent();
+
+    var editButton = menuItem.find('.edit-menu-item');
+    var confirmButton = menuItem.find('.confirm-menu-item');
+    var title = menuItem.find('.menu-item-title');
+    var description = menuItem.find('.menu-item-description');
+    var price = menuItem.find('.menu-item-price');
+
+    var modifiedItem = {
+      'title': title.find('input').val(),
+      'descr': description.find('textarea').val(),
+      'price': +price.find('input').val(),
+      'placeId': menuItem.prop('id'),
+      'itemId': menuItem.data('item')
+    }
+
+    reqApplyChanges(modifiedItem);
+  }
+
+  function confirmChanges(params){
+    console.log(params);
+    var menuItem = $('#' + params.id);
+
+    var editButton = menuItem.find('.edit-menu-item');
+    var confirmButton = menuItem.find('.confirm-menu-item');
+    var title = menuItem.find('.menu-item-title');
+    var description = menuItem.find('.menu-item-description');
+    var price = menuItem.find('.menu-item-price');
+
+    title.html(params.title);
+    description.html(params.descr)
+    price.html(params.price)
+  }
+
+  function reqApplyChanges(params) {
+
+    console.log(params);
+    var dataParams = 'payload_jsonrpc={"json_rpc": "2.0", "method":"create_or_update_menu_items", "params":{'
+      + ' "name":"' + params.title + '",'
+      + ' "descr":"' + params.descr + '",'
+      + ' "price":' + params.price + ','
+      + ' "place_id__id_hash":"' + params.placeId + '",'
+      + ' "id_hash":"' + params.itemId + '",'
+      + ' "operation": "update"'
+      + '}}';
+
+    console.log(dataParams);
 
     $.ajax({
-      url: "http://10.21.2.218:7777/appa/app.pl",
-      type: "POST",
-      data: '{"method":"AckRequest", "params":{"requestID":"' + caller.id + '"}}',
-      success: function(result){ $("#" +caller.id).remove()},
+      url: "http://192.168.1.2:7777/appa/app.pl",
+      type: "GET",
+      data: dataParams,
+      success: confirmChanges(params),
       error: handleErr
    });
   }
 
-  window.onload = renderMenuItems;
-  window.setInterval(renderMenuItems, 5000);
+  window.onload = getMenuItems;
+  // // window.setInterval(renderMenuItems, 5000);
 
-  renderMenuItems('{"result":[{"price":"1.10","id_hash":"f1e737fa-d3e9-4941-bc7d-77ca5a67662c","name":"aaaa","descr":"aaaaa","id":14,"updated_by":1,"ordering":null,"place_id":1,"place_id__id_hash":"08472c7c-a65b-4697-9c16-b691ec096689","inserted_by":1,"image_url":null,"inserted_at":"2016-05-28 15:49:10.848799","updated_at":"2016-05-28 15:49:10.848799"}]}');
+  // renderMenuItems('{"result":[{"price":"1.10","id_hash":"f1e737fa-d3e9-4941-bc7d-77ca5a67662c","name":"aaaa","descr":"aaaaa","id":14,"updated_by":1,"ordering":null,"place_id":1,"place_id__id_hash":"08472c7c-a65b-4697-9c16-b691ec096689","inserted_by":1,"image_url":null,"inserted_at":"2016-05-28 15:49:10.848799","updated_at":"2016-05-28 15:49:10.848799"}]}');
   </script>
 </html>
 
