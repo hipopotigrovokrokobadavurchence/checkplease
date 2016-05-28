@@ -6,6 +6,7 @@ import (
 	"errors"
 	"expvar"
 	"flag"
+	"fmt"
 	"io/ioutil"
 	"net/http"
 	"os"
@@ -18,15 +19,23 @@ import (
 
 var (
 	statistics = expvar.NewMap("counters")
+	statItems  = expvar.NewMap("statItems")
 )
 
 func main() {
 	InitStorage()
+
+	//statistics
+
 	flag.Parse()
 	glog.Info("hello world!")
+	statistics.Add(`totalRequestAcks`, 1)
+	statistics.Add(`totalRequestAdds`, 1)
+
 	statistics.Add(`addUserHashReqCount`, 0)
 	router := mux.NewRouter().StrictSlash(false)
 	router.HandleFunc("/api/", JSONHandler)
+	router.HandleFunc("/statistics/", expvarHandler)
 	glog.Info("Starting server on: ", os.Getenv("API_PORT"), " and endpoint: /api/")
 	glog.Info(http.ListenAndServe(":"+os.Getenv("API_PORT"), router))
 }
@@ -85,7 +94,7 @@ func JSONHandler(w http.ResponseWriter, r *http.Request) {
 
 		if err != nil && err.Error() == `missing_row` {
 			glog.Info("GetPendingRequests error: ", err.Error())
-			WriteResp(w, http.StatusInternalServerError,
+			WriteResp(w, http.StatusOK,
 				`{"jsonrpc": "2.0", "error": {"code": -32603, "message": "Non existant row!"}, "id": "1"}`)
 			return
 		}
@@ -115,7 +124,7 @@ func JSONHandler(w http.ResponseWriter, r *http.Request) {
 		request, err := GetRequest(requestID)
 		if err != nil && err.Error() == `missing_row` {
 			glog.Info("GetPendingRequests error: ", err.Error())
-			WriteResp(w, http.StatusInternalServerError,
+			WriteResp(w, http.StatusOK,
 				`{"jsonrpc": "2.0", "error": {"code": -32603, "message": "Non existant row!"}, "id": "1"}`)
 			return
 		}
@@ -212,10 +221,14 @@ func AddRequest(tableID int, menuItemID int, placeID int) (request request, err 
 	err = db.QueryRow("INSERT INTO  requests(table_id, menu_item_id, place_id, inserted_by, updated_by, state_id) VALUES($1, $2, $3, $4, $5, $6) Returning ID ;",
 		tableID, menuItemID, placeID, 1, 1, 10).Scan(&request.ID)
 
+	menuItemIDStr := strconv.Itoa(menuItemID)
+	statItems.Add(menuItemIDStr, 1)
 	if err != nil {
 		glog.Error("INSERT FAILED")
 		return request, err
 	}
+	statistics.Add(`totalRequestAdds`, 1)
+
 	return request, err
 }
 
@@ -225,6 +238,7 @@ func AckRequest(requestID int) (string, error) {
 		glog.Info("AAAA: ", err)
 	}
 
+	statistics.Add(`totalRequestAcks`, 1)
 	return `ok`, nil
 }
 
@@ -311,7 +325,7 @@ func GetPlaceAndTable(tableID string) (table table, err error) {
 		glog.Info("transaction opened")
 	}
 
-	rows, err := tx.Query(`SELECT p.preferences_json, t.id, t.id_hash, mi.id, mi.name, mi.ordering
+	rows, err := tx.Query(`SELECT p.preferences_json, t.id, t.id_hash, mi.id, mi.name, mi.ordering, p.id
                         FROM tables t join places p ON t.place_id = p.id
                         LEFT JOIN menu_items mi ON t.place_id = mi.place_id WHERE t.id_hash = $1;`, tableID)
 	if err != nil {
@@ -323,7 +337,7 @@ func GetPlaceAndTable(tableID string) (table table, err error) {
 	var items []menuItem
 	for rows.Next() {
 		var item menuItem
-		err = rows.Scan(&table.PreferencesJSON, &table.ID, &table.IDHash, &item.ID, &item.Name, &item.Ordering)
+		err = rows.Scan(&table.PreferencesJSON, &table.ID, &table.IDHash, &item.ID, &item.Name, &item.Ordering, &table.PlaceID)
 		if err != nil {
 			tx.Rollback()
 			return table, err
@@ -358,4 +372,19 @@ func InitStorage() {
 
 func WriteResp(w http.ResponseWriter, status int, msg string) {
 	http.Error(w, msg, status)
+}
+
+func expvarHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
+	fmt.Fprintf(w, "{\n")
+	first := true
+	expvar.Do(func(kv expvar.KeyValue) {
+		if !first {
+			fmt.Fprintf(w, ",\n")
+		}
+		first = false
+		fmt.Fprintf(w, "%q: %s", kv.Key, kv.Value)
+	})
+	fmt.Fprintf(w, "\n}\n")
 }
