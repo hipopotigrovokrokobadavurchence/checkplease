@@ -32,10 +32,6 @@
           <p href="#" class="1thumbnail" id="requests">
           </p>
         </div>
-        <div class="col-xs-6 col-md-6" >
-          <p href="#" class="1thumbnail" id="items">
-          </p>
-        </div>
       </div>
 
 </body>
@@ -46,18 +42,33 @@
        type: "GET",
        success: function(result){
          console.log(result);
-         var a = '<h2 style="color:white;">User request counters:</h2>';
+        var background = "A5D6A7";
+         var a = '<h2 style="color:white;">Bar statistics:</h2>';
          if(result.hasOwnProperty('counters')) {
             for (var counter in result.counters) {
-            a += '<div class="request col-sm-4" id="113"><div class="icon" style=";background:#CE93D8; border-bottom-color:#9e63a8;"><div class="caption"><i class="glyphicon glyphicon-glass"></i> <span>Order</span></div> <span class="icon-body" style="font-size:16px">'+ counter + '</span></div><div class="icon" style=";background:#CE93D8; border-bottom-color:#9e63a8;"><div class="caption"><i class="glyphicon glyphicon-signal"></i> count</div><span data-inserted-at="06:43" class="icon-body">' + result.counters[counter] + '</span></div>';
+                if ( result.counters[counter] > 1000) {
+                    background = "1B5E20";
+                } else if (result.counters[counter] > 100) {
+                    background = "388E3C";
+                } else if (result.counters[counter] > 50) {
+                    background = "4CAF50";
+                }
+            a += '<div class="request col-sm-4" id="113"><div class="icon" style=";background:#' + background + '; border-bottom-color:#9e63a8;"><div class="caption"><i class="glyphicon glyphicon-glass"></i> <span>Order</span></div> <span class="icon-body" style="font-size:16px">'+ counter + '</span></div><div class="icon" style=";background:#' + background + '; border-bottom-color:#9e63a8;"><div class="caption"><i class="glyphicon glyphicon-signal"></i> count</div><span data-inserted-at="06:43" class="icon-body">' + result.counters[counter] + '</span></div>';
             }
             $("#requests").html(a);
        }
 
-        var a = '<h2 style="color:white;">Ordered products/promotions:</h2>';
        if(result.hasOwnProperty('statItems')) {
           for (var counter1 in result.statItems) {
-            a += '<div class="request col-sm-4" id="113"><div class="icon" style=";background:#CE93D8; border-bottom-color:#9e63a8;"><div class="caption"><i class="glyphicon glyphicon-glass"></i> <span>Order</span></div> <span class="icon-body" style="font-size:16px">'+ counter1 + '</span></div><div class="icon" style=";background:#CE93D8; border-bottom-color:#9e63a8;"><div class="caption"><i class="glyphicon glyphicon-signal"></i> count</div><span data-inserted-at="06:43" class="icon-body">' + result.statItems[counter1] + '</span></div>';
+                if ( result.statItems[counter1] > 1000) {
+                    background = "1B5E20";
+                } else if (result.statItems[counter1] > 100) {
+                    background = "388E3C";
+                } else if (result.statItems[counter1] > 50) {
+                    background = "4CAF50";
+                }
+
+            a += '<div class="request col-sm-4" id="113"><div class="icon" style=";background:#' + background + '; border-bottom-color:#9e63a8;"><div class="caption"><i class="glyphicon glyphicon-glass"></i> <span>Order</span></div> <span class="icon-body" style="font-size:16px">'+ counter1 + '</span></div><div class="icon" style=";background:#' + background + '; border-bottom-color:#9e63a8;"><div class="caption"><i class="glyphicon glyphicon-signal"></i> count</div><span data-inserted-at="06:43" class="icon-body">' + result.statItems[counter1] + '</span></div>';
             
 
 /*
@@ -65,7 +76,7 @@
 
 */
           }
-          $("#items").html(a);
+          $("#items").html($("#items").html() + a);
      }},
        error: handleErr
    });
