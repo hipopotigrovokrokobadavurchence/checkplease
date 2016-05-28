@@ -1,0 +1,184 @@
+package CheckPlease::App;
+use warnings;
+
+use CGI;
+use Data::Dumper;
+use Try::Tiny;
+use JSON;
+use DBI;
+
+sub new($)
+{
+    my ($class) = @_;
+    my $self = { };
+    bless $self, $class;
+
+    binmode STDOUT, ':utf8';
+    binmode STDERR, ':utf8';
+
+
+}
+
+sub ASSERT($;$)
+{
+    my($cond, $msg) = @_;
+
+    if($cond)
+    {
+    }
+    else
+    {
+        $msg //= "";
+        die $msg;
+    }
+}
+
+sub TRACE($;$)
+{
+    my($string, $object)=@_;
+    $object //= '';
+    print STDERR "\n",$string,$object;
+}
+
+my $command_map =
+{
+    create_or_update_menu_item => \&CreateOrUpdateMenuItem,
+    create_or_update_menu_category => \&CreateOrUpdateMenuCategory
+};
+
+sub Handler ($)
+{
+    my ($self) = @_;
+
+    my $response;
+
+    try
+    {
+        my $cgi = CGI->new() ; 
+        $$self{cgi} = $cgi->Vars;
+        TRACE("\nCGI: ", Dumper $$self{cgi});
+        #$dbdrv:dbname=$dbname;host=$dbhost;port=$dbport;$dsn_params
+        #$dsn,
+        #                    $dbuser,
+        #                                        $dbauth,
+        #                                                            $connParams ) or throw($dsn . ": ". $DBI::errstr);
+        my $dsn = "dbi:Pg:dbname='places';host='127.0.0.1';port='5432';";
+        my $dbuser = "bar_staff";
+        my $dbauth = "234";
+        my $connParams = { AutoCommit => 1};
+        $$self{dbh} = DBI->connect($dsn, $dbuser, $dbauth, $connParams);
+
+        ASSERT(defined $$self{cgi}{payload_jsonrpc},"NO payload_jsonrpc");
+        my $payload = decode_json($$self{cgi}{payload_jsonrpc});
+        my $method = $$payload{method};
+        my $params = $$payload{params};
+
+        my $cmd_handler = $$command_map{ $cmd_name };
+        $response = encode_json( $$cmd_handler{proc}->($self, $params) );
+        
+    }
+    catch 
+    {
+        $response = '{"error":"001"}';
+    };
+    print CGI::header(-charset => 'utf-8',
+                          -type => 'application/json-rpc',
+                          -Access_Control_Allow_Origin => '*',
+                          -Access_Control_Allow_Headers => "Origin, X-Requested-With, Content-Type, Accept",
+                      );
+
+    print $response;
+
+}
+
+sub CreateOrUpdateMenuItem($$)
+{
+    my($self, $params)=@_;
+
+    ASSERT(defined $$params{name},"Missing name");
+    ASSERT(defined $$params{descr},"Missing description");
+    ASSERT(defined $$params{price},"Missing price");
+    ASSERT(defined $$params{place_id__id_hash}, "Missing place");
+
+    my $sth = $$self{dbh}->prepare("SELECT id FROM places WHERE id_hash = ?");
+    $sth->execute($$params{place_id__id_hash});
+    ASSERT(defined $sth->rows == 1,"No such place!");
+
+    my $place_id_hash = $sth->fetchrow;
+    my $place_id = $$place_id_hash{id};
+    my $cond = undef;
+    my $id_hash = delete $$params{id_hash};
+    if($$params{operation} eq "insert")
+    {
+        $cond = {id_hash => $id_hash};
+
+    }
+    elsif($$params{operation} eq "update")
+    {
+        $cond = undef;
+    }
+    else
+    {
+        ASSERT(0,"Not valid method");
+    }
+    delete $$params{operation};
+    
+    return CreateOrUpdate("menu_items", $params, $cond);
+
+
+}
+
+sub CreateOrUpdate ($$;$)
+{
+    my ($table_name, $params, $cond) = @_;
+    
+    if(defined $cond)
+    {
+        my @update_arr;
+        foreach my $key (keys %$params)
+        {
+            if(defined($$params{$key}))
+            {
+                push @update_arr, " $key=$params{$key} ";
+            }
+        }
+        my @cond_arr;
+        foreach my $key (keys %$cond)
+        {
+            if(defined($$cond{$key}))
+            {
+                push @cond_arr, " $key=$cond{$key} ";
+            }
+            else
+            {
+                push @cond_arr, " $key IS NULL ";
+            }
+        }
+
+        my $params_str = join ' , ', @update_arr;
+        my $cond_str = join ' , ', @cond_arr;
+        my $sth = $$self{dbh}->prepare("UPDATE $table_name SET $params_str WHERE $cond_str");
+        $sth->execute();
+        ASSERT($sth->rows == 1);
+    }
+    else
+    {
+        my @column_names_arr = keys %$params;
+        my @column_values_arr = values %$params;
+        
+        my $column_names_str = join ' , ', @column_names_arr;
+        my $column_values_str = join ' , ', @column_values_arr;
+        my $sth = $$self{dbh}->prepare("INSERT INTO $table_name ($column_names_str) VALUES($column_values_str)");
+        $sth->execute();
+        ASSERT($sth->rows == 1);
+
+    }
+
+
+    return $sth->fetchrow_hashref;
+}
+
+
+
+
+1;
