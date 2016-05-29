@@ -16,17 +16,14 @@ import {
   ListView,
   Navigator,
   Animated,
-  Dimensions
+  Dimensions,
+  BackAndroid
 } from 'react-native';
 //import LoadingContainer from 'react-native-loading-container';
 
 import BarcodeScanner from 'react-native-barcodescanner';
 
 var Button = require('react-native-button');
-
-
-
-
 
 function Requester(url, method, data)
 {
@@ -63,12 +60,26 @@ class barbuddy extends Component {
       cameraType: 'back',
       barcode: null,
 
-      ds: ds
+      ds: ds,
     }
 
   }
 
   render() {
+
+  	_this = this;
+
+ 	BackAndroid.addEventListener('hardwareBackPress', function() {
+	     if (_this.state.view != 'main') {
+	     	_this.setState({view: 'main'});
+	     	return true;
+	     }
+
+	     BackAndroid.removeEventListener('hardwareBackPress');
+
+	     return false;
+  	});
+
     if(this.state.view == 'main') {
 	    return this.renderMainView();
 	} else if(this.state.view == 'menu') {
@@ -82,9 +93,14 @@ class barbuddy extends Component {
 		);
 	} else if(this.state.view == 'scan') {
         return this.renderScannerView();
-    }
+    } 
 
+
+    
   }
+
+  
+
 
   barcodeReceived(e) {
 
