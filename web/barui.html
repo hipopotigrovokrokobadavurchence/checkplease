@@ -3,11 +3,11 @@
 <head>
   <meta charset="UTF-8">
 
-  <link rel="stylesheet" type="text/css" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.0/css/bootstrap.min.css" media="screen" />
+  <link rel="stylesheet" type="text/css" href="bootstrap-3.3.0/css/bootstrap.min.css" media="screen" />
   <link rel="stylesheet" type="text/css" href="./style.css">
 
   <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
-  <script type="text/javascript" src="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.0/js/bootstrap.min.js"></script>
+  <script type="text/javascript" src="bootstrap-3.3.0/js/bootstrap.min.js"></script>
 
 </head>
 <body>
@@ -38,7 +38,7 @@
   settings = {url: "", apiMethod:"POST"}
 
   function GetPendingRequests(){
-    $.ajax({    url: "http://192.168.1.8:9933/api/",
+    $.ajax({    url: "http://127.0.0.1:9933/api/",
        type: "POST",
        data: '{"method":"GetPendingRequests", "params":{"placeID":"1"}}',
        success: RenderPendingRequests,
@@ -94,7 +94,7 @@
   function AckRequest(caller){
     console.log("Caller: ", caller.id);
 
-    $.ajax({    url: "http://192.168.1.8:9933/api/",
+    $.ajax({    url: "http://127.0.0.1:9933/api/",
        type: "POST",
        data: '{"method":"AckRequest", "params":{"requestID":"' + caller.id + '"}}',
        success: function(result){ $("#" +caller.id).remove()},
