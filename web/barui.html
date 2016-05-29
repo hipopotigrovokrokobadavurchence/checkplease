@@ -1,0 +1,149 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+  <meta charset="UTF-8">
+
+  <link rel="stylesheet" type="text/css" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.0/css/bootstrap.min.css" media="screen" />
+  <link rel="stylesheet" type="text/css" href="./style.css">
+
+  <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+  <script type="text/javascript" src="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.0/js/bootstrap.min.js"></script>
+
+</head>
+<body>
+  <nav class="navbar navbar-inverse navbar-fixed-top">
+    <div class="container">
+      <div class="navbar-header">
+        <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+          <span class="sr-only">Toggle navigation</span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </button>
+        <a class="navbar-brand" href="#">CheckPlease - Front office</a>
+      </div>
+      <div id="navbar" class="collapse navbar-collapse">
+        <ul class="nav navbar-nav">
+          <!-- <li><a href="#about">About</a></li> -->
+        </ul>
+      </div><!--/.nav-collapse -->
+    </div>
+  </nav>
+
+  <div id="errContainer"></div>
+  <div class="requests row" id="request_container"></div>
+
+</body>
+  <script>
+  settings = {url: "", apiMethod:"POST"}
+
+  function GetPendingRequests(){
+    $.ajax({    url: "http://192.168.1.8:9933/api/",
+       type: "POST",
+       data: '{"method":"GetPendingRequests", "params":{"placeID":"1"}}',
+       success: RenderPendingRequests,
+       error: handleErr
+   });
+  }
+
+  function handleErr(xhr, reqStatus, reqError){
+      console.log(xhr);
+      $("#errContainer").html('<div class="alert alert-danger"><a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a><strong>Application Error! Please try again later!  </strong></div>');
+  }
+
+  function RenderPendingRequests(result){
+    obj = JSON.parse(result);
+
+    $("#request_container").html('');
+
+    for(var i = 0; i < obj.length; i++) {
+      var backgroundHex = obj[i].SectionColor || '95a5a6';
+      var bottomBorder = (parseInt(backgroundHex, 16) - parseInt('303030', 16)).toString(16);
+      var style = ';background:#'+backgroundHex+'; border-bottom-color:#' + bottomBorder+';';
+
+      $("#request_container").html(
+        $("#request_container").html()
+        + '<div class="request col-sm-4" id="'+obj[i].ID+'">'
+
+        + '<div class="icon" style="'+style+'">'
+        + '<div class="caption"><i class="glyphicon glyphicon-cutlery"></i> '
+        + '<span>table</span>'
+        + '</div> <span class="icon-body">'
+        + obj[i].TableNumber
+        + '</span></div>'
+
+        + '<div class="info">'
+        + '<h1>' + obj[i].MenuItemName + '</h1>'
+        // + '<p>You have been notified</p>'
+        + '</div>'
+
+        + '<div class="icon" style="'+style+'">'
+        + '<div class="caption"><i class="glyphicon glyphicon-time"></i> ordered at:'
+        + '</div>'
+        + '<span data-inserted-at="'+obj[i].InsertedAt+'" class="icon-body">' + obj[i].InsertedAt  + '</span>'
+        + '</div>'
+
+        + '<a href="#" class="controls button green" onclick="AckRequest(this.parentNode)"> <i class="glyphicon glyphicon-ok big"></i> complete</a>'
+        + '</div>'
+      )
+    }
+  }
+
+
+
+  function AckRequest(caller){
+    console.log("Caller: ", caller.id);
+
+    $.ajax({    url: "http://192.168.1.8:9933/api/",
+       type: "POST",
+       data: '{"method":"AckRequest", "params":{"requestID":"' + caller.id + '"}}',
+       success: function(result){ $("#" +caller.id).remove()},
+       error: handleErr
+   });
+  }
+
+  function updateTimers() {
+    var timers = $('[data-inserted-at]');
+    var now = new Date();
+    var nowDay = now.getUTCDay();
+    var nowHour = now.getUTCHours();
+    var nowMinutes = now.getUTCMinutes();
+
+    for (var i = 0, j = timers.length; i < j; i++) {
+      var timer = $(timers[i]);
+      var insertedAt = new Date(timer.data('inserted-at'));
+      var orderDay = insertedAt.getUTCDay();
+      var orderHour = insertedAt.getUTCHours();
+      var orderMinutes = insertedAt.getUTCMinutes();
+
+      var minuteDifference = (nowDay - orderDay)*24*60
+        + (nowHour - orderHour)*60
+        + (nowMinutes - orderMinutes);
+
+      var minuteDifferencePretty;
+
+      if (minuteDifference < 0) {
+        minuteDifferencePretty = '0:01'
+      } else if (minuteDifference > 360) {
+        minuteDifferencePretty = '> 6h'
+      } else {
+        minuteDifferencePretty = Math.floor(minuteDifference / 60) + ':'
+          + ((minuteDifference % 60) < 10
+            ? '0' + (minuteDifference % 60)
+            : (minuteDifference % 60));
+      }
+
+      timer.html(minuteDifferencePretty);
+    }
+  }
+
+  function timeoutFunctions() {
+    GetPendingRequests();
+    updateTimers();
+  }
+
+  window.onload = timeoutFunctions;
+  window.setInterval(timeoutFunctions, 5000);
+
+  </script>
+</html>

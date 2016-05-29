@@ -1,0 +1,92 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+  <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+  <link rel="stylesheet" type="text/css" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.0/css/bootstrap.min.css" media="screen" />
+  <script type="text/javascript" src="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.0/js/bootstrap.min.js"></script>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <nav class="navbar navbar-inverse navbar-fixed-top">
+        <div class="container">
+          <div class="navbar-header">
+            <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+              <span class="sr-only">Toggle navigation</span>
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="#">CheckPlease -  Analytics</a>
+          </div>
+          <div id="navbar" class="collapse navbar-collapse">
+            <ul class="nav navbar-nav">
+              <!-- <li><a href="#about">About</a></li> -->
+            </ul>
+          </div><!--/.nav-collapse -->
+        </div>
+      </nav>
+      <br/><br/><br/>
+      <div id="errContainer"></div>
+      <div class="row">
+        <div class="col-xs-6 col-md-6" >
+          <p href="#" class="1thumbnail" id="requests">
+          </p>
+        </div>
+      </div>
+
+</body>
+  <script>
+
+  function RefreshStatistics(){
+    $.ajax({    url: "http://192.168.1.8:9933/statistics/",
+       type: "GET",
+       success: function(result){
+         console.log(result);
+        var background = "A5D6A7";
+         var a = '<h2 style="color:white;">Bar statistics:</h2>';
+         if(result.hasOwnProperty('counters')) {
+            for (var counter in result.counters) {
+                if ( result.counters[counter] > 1000) {
+                    background = "1B5E20";
+                } else if (result.counters[counter] > 100) {
+                    background = "388E3C";
+                } else if (result.counters[counter] > 50) {
+                    background = "4CAF50";
+                }
+            a += '<div class="request col-sm-4" id="113"><div class="icon" style=";background:#' + background + '; border-bottom-color:#9e63a8;"><div class="caption"><i class="glyphicon glyphicon-glass"></i> <span>Order</span></div> <span class="icon-body" style="font-size:16px">'+ counter + '</span></div><div class="icon" style=";background:#' + background + '; border-bottom-color:#9e63a8;"><div class="caption"><i class="glyphicon glyphicon-signal"></i> count</div><span data-inserted-at="06:43" class="icon-body">' + result.counters[counter] + '</span></div>';
+            }
+            $("#requests").html(a);
+       }
+
+       if(result.hasOwnProperty('statItems')) {
+          for (var counter1 in result.statItems) {
+                if ( result.statItems[counter1] > 1000) {
+                    background = "1B5E20";
+                } else if (result.statItems[counter1] > 100) {
+                    background = "388E3C";
+                } else if (result.statItems[counter1] > 50) {
+                    background = "4CAF50";
+                }
+
+            a += '<div class="request col-sm-4" id="113"><div class="icon" style=";background:#' + background + '; border-bottom-color:#9e63a8;"><div class="caption"><i class="glyphicon glyphicon-glass"></i> <span>Order</span></div> <span class="icon-body" style="font-size:16px">'+ counter1 + '</span></div><div class="icon" style=";background:#' + background + '; border-bottom-color:#9e63a8;"><div class="caption"><i class="glyphicon glyphicon-signal"></i> count</div><span data-inserted-at="06:43" class="icon-body">' + result.statItems[counter1] + '</span></div>';
+
+
+/*
+<div class="request col-sm-4"><a href="#" class="controls button green"> <i class="glyphicon glyphicon-ok big"></i> complete</a><div class="info"><h1>Call for waiter</h1></div></div>
+
+*/
+          }
+          $("#items").html($("#items").html() + a);
+     }},
+       error: handleErr
+   });
+  }
+
+  window.setInterval(RefreshStatistics, 2000);
+
+  function handleErr(xhr, reqStatus, reqError){
+      console.log(xhr);
+      $("#errContainer").html('<div class="alert alert-danger"><a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a><strong>Application Error! Please try again later!  </strong></div>');
+  }
+  </script>
+</html>
