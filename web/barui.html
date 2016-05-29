@@ -97,7 +97,11 @@
     $.ajax({    url: "http://127.0.0.1:9933/api/",
        type: "POST",
        data: '{"method":"AckRequest", "params":{"requestID":"' + caller.id + '"}}',
-       success: function(result){ $("#" +caller.id).remove()},
+       success: function(result){ 
+        $("#" +caller.id).hide("slow", function(){ 
+          $(this).remove(); 
+        })
+      },
        error: handleErr
    });
   }
