@@ -17,7 +17,8 @@ import {
   Navigator,
   Animated,
   Dimensions,
-  BackAndroid
+  BackAndroid,
+  ScrollView
 } from 'react-native';
 //import LoadingContainer from 'react-native-loading-container';
 
@@ -203,7 +204,7 @@ class barbuddy extends Component {
   	_this = this;
   	return (
 
-    	<View style={styles.container}>
+    	<ScrollView style={styles.container}>
 	        <View style={{alignItems: 'center'}}>
 	          <Text style={{fontSize: 42, marginLeft: 5, marginRight: 5, marginBottom: 35}}>CheckPlease</Text>
 	        </View>
@@ -219,7 +220,7 @@ class barbuddy extends Component {
 		        style={styles.listView}
 		      />
 	        </View>
-    	</View>    	
+    	</ScrollView>    	
 	);
   }
 
@@ -298,8 +299,8 @@ class barbuddy extends Component {
         console.log("Success Resp BTN", responseData);
         console.log("Req obj ", _this.state.table_id);
 
-        let preferences_json = responseData.PreferencesJSON;
-
+        let preferences_json = JSON.parse(responseData.PreferencesJSON);
+        console.log("PreferenceJSON ", preferences_json)
         if(responseData.ID == 0) {
           	  Alert.alert(
 		        'Table not found',
