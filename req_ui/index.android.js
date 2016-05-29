@@ -26,6 +26,23 @@ var Button = require('react-native-button');
 
 
 
+
+
+function Requester(url, method, data)
+{
+	// request.onload = onLoad;
+	// request.ontimeout = onTimeout;
+	// request.onerror = onError;
+	var request = null;
+	request = new XMLHttpRequest();
+	request.open(method, url);
+	request.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+	request.send(data);
+	return request;
+	//Retrun request object and add callbacks
+}
+
+
 class barbuddy extends Component {
   constructor(props) {
     super(props)
@@ -35,7 +52,7 @@ class barbuddy extends Component {
       view: 'main',
       menu: undefined,
       preferences_json: undefined,
-      api_url: 'http://192.168.1.8:9933/api/',
+      api_url: 'http://192.168.1.5:9933/api/',
 
 
       btn_color: '#fff',
@@ -246,28 +263,28 @@ class barbuddy extends Component {
 
   	console.log("tblID table ", table_id)
 
-  	fetch(this.state.api_url, {
-        method: 'POST',
-        headers: {
-          'Accept': 'application/json',
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
+
+  	/////////////////////////
+  	let data = JSON.stringify({
           method: 'GetPlaceAndTable',
           params: {
             tableID: table_id+""
           },
-        })
-      })
-      .then((response) => response.json())
-      .then((responseData) => {
-          console.log("Success Resp BTN", responseData);
-          console.log("Req obj ", this.state.table_id);
+        });
 
+  	let _this = this;
 
-          let preferences_json = JSON.parse(responseData.PreferencesJSON);
+  	let req = Requester(this.state.api_url, 'POST', data);
 
-          if(responseData.ID == 0) {
+  	req.onload = function() {
+        let responseData = JSON.parse(req.responseText);
+
+        console.log("Success Resp BTN", responseData);
+        console.log("Req obj ", _this.state.table_id);
+
+        let preferences_json = responseData.PreferencesJSON;
+
+        if(responseData.ID == 0) {
           	  Alert.alert(
 		        'Table not found',
 		        'Please try again',
@@ -275,16 +292,41 @@ class barbuddy extends Component {
 		           {text: 'OK', onPress: () => console.log('OK Pressed')},
 		         ]
 		      );
-          } else {
-	          this.setState({
+
+		      _this.setState({view: 'main'});
+        } else {
+	          _this.setState({
 	          	view: 'menu',
 	          	menu: responseData,
 	          	preferences_json: preferences_json
 	          });
-          }
-      })
-      .catch((error) => {
-        Alert.alert(
+        }
+
+
+  	}
+
+  	req.ontimeout = function() {
+  		console.log("ON TIMEOUT REQ", req.responseText, req.status, req)
+
+  		let error = req.responseText;
+
+  		Alert.alert(
+        'Error',
+        'Please try again',
+          [
+            {text: 'OK', onPress: () => console.log('OK Pressed')},
+          ]
+        )
+
+  		_this.setState({view: "main"});
+  	}
+
+  	req.onerror = function() {
+  		console.log("ON ERROR REQ", req.responseText, req.status, req)
+
+  		let error = req.responseText;
+
+  		Alert.alert(
         'Error',
         'Please try again',
           [
@@ -293,10 +335,11 @@ class barbuddy extends Component {
         )
         this.setState({view: "main"});
         console.log("ERRORR ", error)
-      })
-      .done(() => {
-      	console.log("Req DOne");
-      });
+  	}
+
+  	///////////////////////////
+
+      console.log("End Of GetPlaceAndTableReq");
   }
 
   //'{"method":"AddRequest", "params":{"tableID":"1", "menuItemID": "1", "placeID":"1"}}' 
@@ -307,40 +350,40 @@ class barbuddy extends Component {
   	this.setState({view: "loading"});
   	console.log("Conttttt", this.state);
 
-	fetch(this.state.api_url, {
-        method: 'POST',
-        headers: {
-          'Accept': 'application/json',
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
+
+  	let data = JSON.stringify({
           method: 'AddRequest',
           params: {
             tableID: this.state.table_id,
             menuItemID: ""+id,
             placeID: ""+this.state.menu.PlaceID
           },
-        })
-      })
-      .then((response) => {
-      	console.log("Response phase ", response);
-      	this.setState({view: "menu"});
-      	response.json()
-      })
-      .then((responseData) => {
-          console.log("Success Resp MenuBtnzzzzz", responseData);
+        });
 
-          Alert.alert(
-	        'Success',
-	        'Success',
-	          [
-	            {text: 'OK', onPress: () => console.log('OK Pressed')},
-	          ]
-	        )
-          this.setState({view: "menu"});
-      })
-      .catch((error) => {
-        Alert.alert(
+  	let _this = this;
+
+  	let req = Requester(this.state.api_url, 'POST', data);
+
+  	req.onload = function() {
+        let responseData = JSON.parse(req.responseText);
+
+        console.log("Success Resp MenuBtnzzzzz", responseData);
+
+    	Alert.alert(
+    		'Success',
+        	'Success',
+          [
+            {text: 'OK', onPress: () => console.log('OK Pressed')},
+          ]
+        )
+    	_this.setState({view: "menu"});
+  	}
+
+  	req.ontimeout = function() {
+  		console.log("ON TIMEOUT REQ", req.responseText, req.status, req)
+  		let error = req.responseText;
+
+  		Alert.alert(
         'Error',
         'Please try again',
           [
@@ -348,14 +391,28 @@ class barbuddy extends Component {
           ]
         )
 
-        this.setState({view: "menu"});
+  		_this.setState({view: "main"});
+  	}
+
+  	req.onerror = function() {
+  		console.log("ON ERROR REQ", req.responseText, req.status, req)
+
+  		let error = req.responseText;
+
+  		Alert.alert(
+        'Error',
+        'Please try again',
+          [
+            {text: 'OK', onPress: () => console.log('OK Pressed')},
+          ]
+        )
+
+        _this.setState({view: "menu"});
 
         console.log("ERRORR ", error)
-    })
-    .done((doneData) => {
-    	console.log("Done ", doneData)
-    	this.setState({view: "menu"});
-    });
+  	}
+  	/////////////////////////////////////
+
     console.log("END conttttz");
   }
 }
